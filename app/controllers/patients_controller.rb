@@ -4,34 +4,53 @@ require "net/http"
 
 class PatientsController < ApplicationController
   skip_before_action :verify_authenticity_token
+  before_action :set_patient, only: %i[create edit show update destroy]
 
   def upload
+  end
+
+  def verified
   end
 
   def index
     @patients_matched = Patient.all.select { :name.present? }
   end
 
+  # def create
+  #   @patient = Patient.new(patient_params)
+  #   if @patient.save
+  #     render json: @patient.as_json, status: :created
+  #   else
+  #     render json: @patient.errors, status: :unprocessable_entity
+  #   end
+  # end
+
+  def show
+  end
+
   def edit
-    @patient = Patient.find(params[:id])
   end
 
   def update
-    @patient = Patient.find(params[:id])
-    @patient.name = params[:id]
-    @patient.phone_numbers = params[:phone_numbers]
-    @patient.location = params[:location]
-    @patient.details = params[:details]
-    redirect_to patient_path(@patient)
+  @patient.update(patient_params)
+  redirect_to patients_path
+  # @patient.name = params[:id]
+  # @patient.phone_numbers = params[:phone_numbers]
+  # @patient.location = params[:location]
+  # @patient.details = params[:details]
+  # redirect_to patient_path(@patient)
+  end
+
+  def destroy
+    @patient.destroy
+    redirect_to patients_path, status: :see_other
   end
 
   def cloudinary
     name = params[:results][:name]
     session[:name] = name
-
     phone_number = params[:results][:phoneNumber]
     session[:phone_number] = phone_number
-
     url = params[:results][:url]
     session[:url] = url
   end
@@ -87,16 +106,11 @@ class PatientsController < ApplicationController
 
   end
 
-  def create
-    @patient = Patient.new(patient_params)
-    if @patient.save
-      render json: @patient.as_json, status: :created
-    else
-      render json: @patient.errors, status: :unprocessable_entity
-    end
-  end
-
   private
+
+  def set_patient
+    @patient = Patient.find(params[:id])
+  end
 
   def patient_params
     params.require(:patient).permit(:name, :phone_numbers, :location, :details, :photo)
